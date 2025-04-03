@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小白与包妹约会倒计时</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #6e45e2 0%, #89d4cf 100%);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            overflow: hidden;
+            text-align: center;
+            position: relative;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #6e45e2;
+            font-size: 2.2rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .date-display {
+            background-color: #6e45e2;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(110, 69, 226, 0.3);
+        }
+        .countdown {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: nowrap;
+            perspective: 1000px;
+            gap: 15px;
+            max-width: 100%;
+            padding: 0 10px;
+        }
+        .countdown-item {
+            margin: 0;
+            text-align: center;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            flex: 0 0 auto;
+            width: calc(25% - 15px);
+            max-width: 80px;
+        }
+        .countdown-item:hover {
+            transform: translateZ(20px);
+        }
+        .countdown-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #6e45e2;
+            background: white;
+            width: 100%;
+            height: 70px;
+            line-height: 70px;
+            border-radius: 15px;
+            display: block;
+            box-shadow: 0 8px 15px rgba(110, 69, 226, 0.2);
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            transition: all 0.5s ease;
+            text-shadow: 2px 2px 8px rgba(110, 69, 226, 0.3);
+            animation: pulse 2s infinite;
+            z-index: 2;
+            margin: 0 auto;
+        }
+        .countdown-number .digit-top,
+        .countdown-number .digit-bottom {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            overflow: hidden;
+            background: white;
+        }
+        .countdown-number .digit-top {
+            top: 0;
+            transform-origin: bottom;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+        .countdown-number .digit-bottom {
+            bottom: 0;
+            transform-origin: top;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+        .countdown-number .flip-animation {
+            animation: flip 0.5s ease-in-out;
+        }
+        @keyframes flip {
+            0% { transform: rotateX(0); }
+            50% { transform: rotateX(90deg); }
+            100% { transform: rotateX(0); }
+        }
+        .glowing-border {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            z-index: -1;
+            border-radius: 17px;
+            background: linear-gradient(45deg, #ff00cc, #3333ff, #00ccff, #00ff00);
+            background-size: 400% 400%;
+            animation: glowingBorder 5s ease infinite;
+            filter: blur(5px);
+            opacity: 0.7;
+        }
+        @keyframes glowingBorder {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1) translateZ(0);
+                box-shadow: 0 8px 15px rgba(110, 69, 226, 0.2);
+            }
+            50% {
+                transform: scale(1.05) translateZ(10px);
+                box-shadow: 0 12px 20px rgba(110, 69, 226, 0.4);
+            }
+            100% {
+                transform: scale(1) translateZ(0);
+                box-shadow: 0 8px 15px rgba(110, 69, 226, 0.2);
+            }
+        }
+        .countdown-label {
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #666;
+            font-weight: bold;
+        }
+        .message {
+            margin: 30px 0;
+            font-size: 1.4rem;
+            line-height: 1.6;
+            color: #444;
+        }
+        .message-special {
+            font-style: italic;
+            margin-top: 15px;
+            color: #6e45e2;
+            font-weight: bold;
+        }
+        .hearts {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .heart {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%236e45e2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>') no-repeat center center;
+            background-size: contain;
+            opacity: 0;
+            animation: float 6s linear infinite;
+        }
+        .moon {
+            position: absolute;
+            top: 50px;
+            right: 50px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            z-index: 0;
+        }
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 4s infinite;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        footer {
+            margin-top: 30px;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        .place-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            background: rgba(110, 69, 226, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .place-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            color: #6e45e2;
+        }
+        .place-text {
+            font-size: 1.1rem;
+            color: #444;
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            .countdown {
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: space-around;
+            }
+            .countdown-item {
+                width: calc(50% - 10px);
+                max-width: none;
+                margin-bottom: 15px;
+            }
+            .countdown-number {
+                width: 100%;
+                height: 60px;
+                line-height: 60px;
+                font-size: 2.2rem;
+            }
+            .container {
+                padding: 20px 15px;
+                width: 95%;
+            }
+            .date-display {
+                font-size: 1rem;
+                padding: 10px 15px;
+            }
+            .message {
+                font-size: 1.2rem;
+            }
+            .moon {
+                width: 50px;
+                height: 50px;
+                top: 30px;
+                right: 30px;
+            }
+        }
+        @media (max-width: 400px) {
+            .countdown {
+                gap: 8px;
+            }
+            .countdown-item {
+                width: calc(50% - 8px);
+            }
+            .countdown-number {
+                width: 100%;
+                height: 50px;
+                line-height: 50px;
+                font-size: 1.8rem;
+            }
+        }
+        /* 爱心粒子特效 */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            display: none;
+        }
+        .particle {
+            position: absolute;
+            background-color: #ff69b4;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        /* 心形粒子 */
+        .heart-particle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff1493"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>') no-repeat center center;
+            background-size: contain;
+            z-index: 10;
+        }
+        @keyframes rainbow-move {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        /* 倒计时显示特殊效果 */
+        .rainbow-text {
+            background-image: linear-gradient(to right, #ff0000, #ff9900, #ffff00, #33cc33, #3399ff, #6633cc, #cc33cc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent !important;
+            animation: rainbow-move 2s linear infinite;
+            background-size: 200% auto;
+            font-weight: bold;
+        }
+        .rainbow-text:after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            -webkit-text-stroke: 3px rgba(0, 0, 0, 0.5);
+            text-stroke: 3px rgba(0, 0, 0, 0.5);
+            color: transparent;
+        }
+        .number-outline {
+            -webkit-text-stroke: 2px #000;
+            text-stroke: 2px #000;
+        }
+        .number-with-shadow {
+            text-shadow: 
+                0 2px 0 #000,
+                2px 2px 0 rgba(0,0,0,0.8),
+                -2px 2px 0 rgba(0,0,0,0.8);
+        }
+        .number-3d {
+            transform: perspective(500px) rotateY(15deg);
+        }
+        /* 特效按钮 */
+        .effects-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            padding: 10px 15px;
+            background: rgba(110, 69, 226, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .effects-toggle:hover {
+            background: rgba(110, 69, 226, 1);
+            transform: translateY(-3px);
+        }
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <div class="moon"></div>
+    <div class="hearts" id="hearts"></div>
+    <div class="particles-container" id="particles"></div>
+    <button class="effects-toggle" id="effects-toggle">✨ 特效</button>
+    <div class="container">
+        <h1>小白与包妹的浪漫之约</h1>
+        <div class="date-display">
+            2025年4月3日 星期四 晚上21:00
+        </div>
+        <!-- <div class="message">
+            距离我们的约会还有：
+        </div> -->
+        <div class="countdown" id="countdown">
+            <div class="countdown-item">
+                <div class="countdown-number" id="days">
+                    <div class="glowing-border"></div>
+                    00
+                </div>
+                <div class="countdown-label">天</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number" id="hours">
+                    <div class="glowing-border"></div>
+                    00
+                </div>
+                <div class="countdown-label">时</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number" id="minutes">
+                    <div class="glowing-border"></div>
+                    00
+                </div>
+                <div class="countdown-label">分</div>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-number" id="seconds">
+                    <div class="glowing-border"></div>
+                    00
+                </div>
+                <div class="countdown-label">秒</div>
+            </div>
+        </div>
+        <div class="message" id="meetingMessage">
+            每一分每一秒，都在期待与你相见的那一刻
+        </div>
+        <div class="message-special">
+            想象我们相遇时的喜悦，那将是世界上最美好的瞬间 ❤️
+        </div>
+        <div class="place-info">
+            <div class="place-icon">📍</div>
+            <div class="place-text">我们的小秘密约会地点，你知道在哪里</div>
+        </div>
+    </div>
+    <footer>
+        用❤️和思念编织，只为与你的重逢
+    </footer>
+
+    <script>
+        // 创建星星背景
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const count = 100;
+            
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 4 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        // 创建心形动画
+        function createHearts() {
+            const heartsContainer = document.getElementById('hearts');
+            const count = 20;
+            
+            for (let i = 0; i < count; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                heart.style.opacity = Math.random();
+                heart.style.transform = `scale(${Math.random() * 0.8 + 0.5})`;
+                heartsContainer.appendChild(heart);
+            }
+        }
+        
+        // 设定约会时间：2025年4月3日晚上21点
+        const targetDate = new Date('2025-04-03T21:00:00');
+            
+        // 更新倒计时函数
+        function updateCountdown() {
+            const now = new Date();
+            const distance = targetDate - now;
+            
+            // 如果日期已过，显示0
+            if (distance < 0) {
+                updateElement('days', '00');
+                updateElement('hours', '00');
+                updateElement('minutes', '00');
+                updateElement('seconds', '00');
+                document.getElementById('meetingMessage').innerText = '约会时间到啦！祝你们有个美好的时光 💖';
+                return;
+            }
+            
+            // 计算时间
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            // 更新显示
+            updateElement('days', days < 10 ? '0' + days : days.toString());
+            updateElement('hours', hours < 10 ? '0' + hours : hours.toString());
+            updateElement('minutes', minutes < 10 ? '0' + minutes : minutes.toString());
+            updateElement('seconds', seconds < 10 ? '0' + seconds : seconds.toString());
+        }
+        
+        // 创建爱心粒子特效
+        function createParticles() {
+            const container = document.getElementById('particles');
+            container.style.display = 'block';
+            
+            // 清除现有粒子
+            container.innerHTML = '';
+            
+            // 创建新粒子
+            const particleCount = 100; // 减少一些粒子数量以提高性能
+            
+            // 添加圆形粒子
+            for (let i = 0; i < particleCount * 0.7; i++) {
+                createParticle(container);
+            }
+            
+            // 添加心形粒子
+            for (let i = 0; i < particleCount * 0.3; i++) {
+                createHeartParticle(container);
+            }
+            
+            // 3秒后隐藏
+            setTimeout(() => {
+                container.style.display = 'none';
+            }, 3000);
+        }
+        
+        function createParticle(container) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            // 随机大小
+            const size = Math.random() * 15 + 5;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            
+            // 随机位置 - 从中央扩散
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * 200 + 50;
+            
+            const startX = centerX + Math.cos(angle) * 20;
+            const startY = centerY + Math.sin(angle) * 20;
+            
+            const endX = centerX + Math.cos(angle) * distance;
+            const endY = centerY + Math.sin(angle) * distance;
+            
+            particle.style.left = `${startX}px`;
+            particle.style.top = `${startY}px`;
+            
+            // 随机颜色
+            const colors = ['#ff69b4', '#ff1493', '#f08080', '#ff6347', '#ff4500', '#9370db', '#8a2be2'];
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            // 添加到容器
+            container.appendChild(particle);
+            
+            // 动画
+            const animDuration = Math.random() * 2 + 1;
+            
+            // 使用原生动画API动画化粒子
+            setTimeout(() => {
+                particle.style.transition = `all ${animDuration}s ease-out`;
+                particle.style.left = `${endX}px`;
+                particle.style.top = `${endY}px`;
+                particle.style.opacity = '0';
+                particle.style.transform = `scale(0.5)`;
+            }, 10);
+            
+            // 动画结束后移除
+            setTimeout(() => {
+                particle.remove();
+            }, animDuration * 1000);
+        }
+        
+        // 创建心形粒子
+        function createHeartParticle(container) {
+            const particle = document.createElement('div');
+            particle.className = 'heart-particle';
+            
+            // 随机大小
+            const size = Math.random() * 20 + 10;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            
+            // 随机位置 - 从中央扩散
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * 100 + 50;
+            
+            const startX = centerX + Math.cos(angle) * 20;
+            const startY = centerY + Math.sin(angle) * 20;
+            
+            const endX = centerX + Math.cos(angle) * distance;
+            const endY = centerY + Math.sin(angle) * distance;
+            
+            particle.style.left = `${startX}px`;
+            particle.style.top = `${startY}px`;
+            
+            // 随机旋转
+            particle.style.transform = `rotate(${Math.random() * 360}deg)`;
+            
+            // 添加到容器
+            container.appendChild(particle);
+            
+            // 动画
+            const duration = Math.random() * 2 + 1;
+            
+            // 使用原生动画API动画化粒子
+            setTimeout(() => {
+                particle.style.transition = `all ${duration}s ease-out`;
+                particle.style.left = `${endX}px`;
+                particle.style.top = `${endY}px`;
+                particle.style.opacity = '0';
+                particle.style.transform = `rotate(${Math.random() * 360 + 360}deg) scale(0.5)`;
+            }, 10);
+            
+            // 动画结束后移除
+            setTimeout(() => {
+                particle.remove();
+            }, duration * 1000);
+        }
+        
+        // 特效切换
+        function setupEffectsToggle() {
+            const toggleBtn = document.getElementById('effects-toggle');
+            const countdownNumbers = document.querySelectorAll('.countdown-number');
+            let effectsOn = true; // 默认开启
+            
+            // 设置初始状态
+            toggleBtn.innerHTML = '✨ 特效开启';
+            
+            // 添加彩虹文字效果
+            countdownNumbers.forEach(num => {
+                // 保存原始文本作为data属性，用于轮廓显示
+                num.setAttribute('data-text', num.innerText);
+                num.classList.add('rainbow-text');
+                num.classList.add('number-3d');
+                num.classList.add('number-outline');
+                num.classList.add('number-with-shadow');
+            });
+            
+            // 播放粒子特效
+            //createParticles();
+            
+            // 定时循环播放粒子特效
+            setInterval(() => {
+                if (effectsOn) {
+                    createParticles();
+                }
+            }, 10000); // 每10秒播放一次特效
+            
+            toggleBtn.addEventListener('click', () => {
+                effectsOn = !effectsOn;
+                
+                if (effectsOn) {
+                    // 开启特效
+                    toggleBtn.innerHTML = '✨ 特效开启';
+                    // 添加彩虹文字效果
+                    countdownNumbers.forEach(num => {
+                        num.classList.add('rainbow-text');
+                        num.classList.add('number-3d');
+                        num.classList.add('number-outline');
+                        num.classList.add('number-with-shadow');
+                    });
+                    // 播放粒子特效
+                    createParticles();
+                } else {
+                    // 关闭特效
+                    toggleBtn.innerHTML = '✨ 特效';
+                    countdownNumbers.forEach(num => {
+                        num.classList.remove('rainbow-text');
+                        num.classList.remove('number-3d');
+                        num.classList.remove('number-outline');
+                        num.classList.remove('number-with-shadow');
+                    });
+                }
+            });
+        }
+        
+        // 倒计时完成时的特效
+        function celebrateCountdown() {
+            // 只有在距离日期少于1秒时触发
+            const now = new Date();
+            const distance = targetDate - now;
+            
+            if (distance > 0 && distance < 1000) {
+                // 触发庆祝特效
+                createParticles();
+                
+                // 添加额外的庆祝元素
+                const countdown = document.getElementById('countdown');
+                countdown.style.animation = 'celebrate 1s';
+                
+                // 移除庆祝动画
+                setTimeout(() => {
+                    countdown.style.animation = '';
+                }, 1000);
+            }
+        }
+        
+        // 生成随机密码特效
+        function scrambleEffect(element, finalValue) {
+            // 停止任何之前的动画
+            if (element.scrambleInterval) {
+                clearInterval(element.scrambleInterval);
+            }
+            
+            const chars = '0123456789';
+            const finalValueStr = finalValue.toString();
+            let iterations = 0;
+            const maxIterations = 10;
+            
+            element.scrambleInterval = setInterval(() => {
+                let result = '';
+                
+                // 用随机字符替换
+                for (let i = 0; i < finalValueStr.length; i++) {
+                    if (iterations >= maxIterations / 2) {
+                        // 动画后半部分，逐渐显示正确数字
+                        if (i < iterations - maxIterations / 2) {
+                            result += finalValueStr[i];
+                        } else {
+                            result += chars[Math.floor(Math.random() * chars.length)];
+                        }
+                    } else {
+                        // 动画前半部分，显示随机数字
+                        result += chars[Math.floor(Math.random() * chars.length)];
+                    }
+                }
+                
+                element.innerText = result;
+                
+                iterations++;
+                
+                if (iterations >= maxIterations) {
+                    clearInterval(element.scrambleInterval);
+                    element.innerText = finalValue;
+                }
+            }, 50);
+        }
+        
+        // 更新元素并添加翻转动画
+        function updateElement(id, newValue) {
+            const element = document.getElementById(id);
+            if (!element) return; // 防止元素不存在时报错
+            
+            const oldValue = element.innerText;
+            
+            if(oldValue !== newValue) {
+                // 更新data-text属性用于轮廓效果
+                element.setAttribute('data-text', newValue);
+                
+                // 判断是否为秒数变化，如果是则使用密码效果
+                if (id === 'seconds') {
+                    scrambleEffect(element, newValue);
+                } else {
+                    // 添加翻转动画
+                    element.classList.add('flip-animation');
+                    
+                    // 变化颜色
+                    const colors = ['#6e45e2', '#8a2be2', '#9400d3', '#9932cc', '#8b008b'];
+                    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                    element.style.color = randomColor;
+                    
+                    // 更新值
+                    setTimeout(() => {
+                        element.innerText = newValue;
+                        
+                        // 恢复颜色
+                        setTimeout(() => {
+                            element.style.color = '#6e45e2';
+                        }, 300);
+                    }, 250);
+                    
+                    // 移除动画类
+                    setTimeout(() => {
+                        element.classList.remove('flip-animation');
+                    }, 500);
+                }
+                
+                // 触发发光效果
+                const glowingBorder = element.querySelector('.glowing-border');
+                if (glowingBorder) { // 检查元素是否存在
+                    glowingBorder.style.opacity = '1';
+                    setTimeout(() => {
+                        glowingBorder.style.opacity = '0.7';
+                    }, 500);
+                }
+            }
+            
+            // 检查是否应该触发庆祝特效
+            celebrateCountdown();
+        }
+        
+        // 页面加载时初始化
+        window.onload = function() {
+            createStars();
+            createHearts();
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+            setupEffectsToggle();
+            
+            // 添加数字变化效果
+            const countdownNumbers = document.querySelectorAll('.countdown-number');
+            countdownNumbers.forEach(number => {
+                number.addEventListener('mouseover', function() {
+                    this.style.transform = 'rotateY(360deg) scale(1.1)';
+                    this.style.transition = 'transform 0.8s ease-in-out';
+                    this.style.background = 'linear-gradient(135deg, #fff, #f0f0ff)';
+                });
+                
+                number.addEventListener('mouseout', function() {
+                    this.style.transform = 'rotateY(0) scale(1)';
+                    this.style.background = 'white';
+                });
+                
+                // 随机闪烁效果
+                setInterval(() => {
+                    if (Math.random() > 0.95) {
+                        number.style.transform = 'scale(1.15)';
+                        number.style.color = '#9370DB';
+                        setTimeout(() => {
+                            number.style.transform = 'scale(1)';
+                            number.style.color = '#6e45e2';
+                        }, 300);
+                    }
+                }, 2000);
+            });
+        };
+    </script>
+</body>
+</html>
